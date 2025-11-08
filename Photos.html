@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home | Oaks Ridge Riders</title>
+  <link rel="stylesheet" href="Style.css" />
+</head>
+
+<body>
+  <div class="page-wrapper">
+    <header>
+      <div class="logo-title">
+        <img src="ORR Logo Updated Complete.png" alt="Oaks Ridge Riders Logo" class="logo" />
+        <!-- <h1>Oaks Ridge Riders</h1> /remove the Title because the logo has the name and so does the main index page-->  
+      </div>
+      <nav>
+        <ul>
+          <li><a href="Index.html">Home</a></li>
+          <li><a href="Trail Info.html">Trail Information</a></li>
+		  <li><a href="Events.html">Events</a></li>
+          <li><a href="Officers.html">Officers</a></li>
+          <li><a href="Safety.html">Safety</a></li>
+		  <li><a href="Photos.html">Photos</a></li>
+		  <li><a href="Links.html">Links</a></li>
+          <li><a href="Contact.html">Contact</a></li>
+        </ul>
+      </nav>
+    </header>
+
+	<main>
+
+
+
+	  <div class="main-content">
+		<!-- INSERT Main information here -->
+		<h1>Club Photo Gallery</h1>
+	  <!-- two containers -->
+	  <div id="album-grid"></div>
+	  <div id="gallery-view" style="display: none;"></div>
+	  </div>
+	</main>
+
+<!-- LIGHTBOX CODE -->
+
+	<div id="lightbox" class="lightbox" style="display: none;">
+	  <span class="close">&times;</span>
+	  <span class="arrow left">&#10094;</span>
+	  <img class="lightbox-content" id="lightbox-img" alt="">
+	  <span class="arrow right">&#10095;</span>
+	</div>
+
+
+    <footer>
+      <p>&copy; 2025 Oaks Ridge Riders Snowmobile Club</p>
+    </footer>
+    </div>
+  
+  
+   <!-- The following code is a script that will automatically pull images from folders so they don't have to me individually listed.-->  
+	<script>
+	document.addEventListener("DOMContentLoaded", () => {
+	  let currentAlbum = null;
+	  let currentIndex = 0;
+
+	  fetch('albums.json')
+		.then(response => response.json())
+		.then(albums => {
+		  const albumGrid = document.getElementById("album-grid");
+		  const galleryView = document.getElementById("gallery-view");
+
+		  // Sort albums from newest to oldest
+		  albums.sort((a, b) => {
+			const yearA = parseInt(a.title.match(/\d{4}/)) || 0;
+			const yearB = parseInt(b.title.match(/\d{4}/)) || 0;
+			return yearB - yearA;
+		  });
+
+		  albums.forEach(album => {
+			const albumCard = document.createElement("div");
+			albumCard.className = "album-card";
+
+			const thumb = document.createElement("img");
+			thumb.src = `images/${album.folder}/${album.photos[0]}`;
+			thumb.alt = album.title;
+			thumb.classList.add("album-thumb");
+
+			const label = document.createElement("div");
+			label.textContent = album.title;
+			label.className = "album-label";
+
+			albumCard.appendChild(thumb);
+			albumCard.appendChild(label);
+			albumCard.addEventListener("click", () => showAlbum(album));
+			albumGrid.appendChild(albumCard);
+		  });
+
+		  function showAlbum(album) {
+			albumGrid.style.display = "none";
+			galleryView.innerHTML = "";
+			galleryView.style.display = "block";
+
+			const backButton = document.createElement("button");
+			backButton.textContent = "← Back to Albums";
+			backButton.className = "back-button";
+			backButton.addEventListener("click", () => {
+			  galleryView.style.display = "none";
+			  albumGrid.style.display = "grid";
+			});
+			galleryView.appendChild(backButton);
+
+			const heading = document.createElement("h2");
+			heading.textContent = album.title;
+			galleryView.appendChild(heading);
+
+			const gallery = document.createElement("div");
+			gallery.className = "gallery";
+
+			album.photos.forEach((filename, index) => {
+			  const img = document.createElement("img");
+			  img.src = `images/${album.folder}/${filename}`;
+			  img.alt = `${album.title} - ${filename}`;
+			  img.loading = "lazy";
+
+			  img.addEventListener("click", () => {
+				currentAlbum = album;
+				currentIndex = index;
+				openLightbox(img.src);
+			  });
+
+			  gallery.appendChild(img);
+			});
+
+			galleryView.appendChild(gallery);
+		  }
+		})
+		.catch(error => {
+		  console.error("Error loading albums:", error);
+		});
+
+	  // Lightbox functions
+	  function openLightbox(src) {
+		document.getElementById("lightbox-img").src = src;
+		document.getElementById("lightbox").style.display = "flex";
+	  }
+
+	  function closeLightbox() {
+		document.getElementById("lightbox").style.display = "none";
+	  }
+
+	  function showNextImage() {
+		if (!currentAlbum) return;
+		currentIndex = (currentIndex + 1) % currentAlbum.photos.length;
+		const nextSrc = `images/${currentAlbum.folder}/${currentAlbum.photos[currentIndex]}`;
+		openLightbox(nextSrc);
+	  }
+
+	  function showPrevImage() {
+		if (!currentAlbum) return;
+		currentIndex = (currentIndex - 1 + currentAlbum.photos.length) % currentAlbum.photos.length;
+		const prevSrc = `images/${currentAlbum.folder}/${currentAlbum.photos[currentIndex]}`;
+		openLightbox(prevSrc);
+	  }
+
+	  // Lightbox event listeners
+	  document.querySelector(".lightbox .close").addEventListener("click", closeLightbox);
+	  document.querySelector(".arrow.left").addEventListener("click", showPrevImage);
+	  document.querySelector(".arrow.right").addEventListener("click", showNextImage);
+
+	  document.addEventListener("keydown", (e) => {
+		if (document.getElementById("lightbox").style.display === "flex") {
+		  if (e.key === "ArrowRight") showNextImage();
+		  if (e.key === "ArrowLeft") showPrevImage();
+		  if (e.key === "Escape") closeLightbox();
+		}
+	  });
+	});
+	</script>
+ <!-- End of automatic image script--> 
+  
+
+</body>
+</html>
